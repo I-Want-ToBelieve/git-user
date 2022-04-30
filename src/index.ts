@@ -1,5 +1,6 @@
-#!/usr/bin/env zx
-/* eslint-disable @typescript-eslint/no-floating-promises */
+#!/usr/bin/env node
+import process from 'node:process'
+
 import Table from 'cli-table3'
 import * as commander from 'commander'
 import Conf, { Options } from 'conf'
@@ -12,7 +13,8 @@ type Account = {
   email: string
 }
 
-const createTable = (options?: Table.TableConstructorOptions) => new Table(options)
+const createTable = (options?: Table.TableConstructorOptions) =>
+  new Table(options)
 const createConfig = <T>(options?: Options<T>) => new Conf(options)
 
 /**
@@ -57,6 +59,7 @@ const autocompletion = () => {
 
   completion.init()
 }
+
 autocompletion()
 
 /**
@@ -71,7 +74,9 @@ const verify_email = (value: string) => {
   const result = EMAIL_REGEX.test(trim(value_))
 
   if (!result) {
-    throw new commander.InvalidArgumentError('Because it is not a valid email address.')
+    throw new commander.InvalidArgumentError(
+      'Because it is not a valid email address.'
+    )
   }
 
   return value_
@@ -87,22 +92,21 @@ const list = () => {
       fs.readFileSync(path.resolve(os.homedir(), '.gitconfig'), 'utf-8')
     )
     const { user } = git_config as {
-      user: {
-        name: string
-        email: string
-      }
+      user: Account
     }
     const hasUser = user?.name && user?.email
 
     table.push(
-      ...config.get('accounts').reduce<string[][]>((previous, { name, email }) => {
-        return [
-          ...previous,
-          hasUser && user.name.includes(name) && user.email.includes(email)
-            ? [chalk.green(name), chalk.green(email)]
-            : [name, email],
-        ]
-      }, [])
+      ...config
+        .get('accounts')
+        .reduce<string[][]>((previous, { name, email }) => {
+          return [
+            ...previous,
+            hasUser && user.name.includes(name) && user.email.includes(email)
+              ? [chalk.green(name), chalk.green(email)]
+              : [name, email],
+          ]
+        }, [])
     )
     console.log(table.toString())
     return true
@@ -111,85 +115,92 @@ const list = () => {
   return false
 }
 
-const actions: Record<Actions, (...args: any[]) => boolean | Promise<boolean>> = {
-  init () {
-    const git_config = ini.parse(
-      fs.readFileSync(path.resolve(os.homedir(), '.gitconfig'), 'utf-8')
-    )
-    const { user } = git_config
+const actions: Record<Actions, (...args: any[]) => boolean | Promise<boolean>> =
+  {
+    init() {
+      const git_config = ini.parse(
+        fs.readFileSync(path.resolve(os.homedir(), '.gitconfig'), 'utf-8')
+      )
+      const { user } = git_config
 
-    if (user?.name && user?.email) {
-      const { name, email } = user
+      if (user?.name && user?.email) {
+        const { name, email } = user as Account
 
-      config.set('accounts', [{ name, email }])
+        config.set('accounts', [{ name, email }])
 
-      list()
+        list()
 
-      return true
-    }
+        return true
+      }
 
-    config.set('accounts', [])
+      config.set('accounts', [])
 
-    return false
-  },
-  add ({ name, email }: Account) {
-    const accounts = config.get('accounts')
-    const account = accounts.some((it) => it.name === name || it.email === email)
-
-    if (!account) {
-      config.set('accounts', [
-        ...config.get('accounts'),
-        {
-          name,
-          email,
-        },
-      ])
-
-      list()
-
-      return true
-    }
-
-    return false
-  },
-  remove ({ value }: { value: string }) {
-    const accounts = config.get('accounts')
-    const account = accounts.some((it) => it.name === value || it.email === value)
-
-    if (account) {
-      config.set(
-        'accounts',
-        accounts.filter((it) => !(it.name === value || it.email === value))
+      return false
+    },
+    add({ name, email }: Account) {
+      const accounts = config.get('accounts')
+      const account = accounts.some(
+        (it) => it.name === name || it.email === email
       )
 
-      list()
+      if (!account) {
+        config.set('accounts', [
+          ...config.get('accounts'),
+          {
+            name,
+            email,
+          },
+        ])
 
-      return true
-    }
+        list()
 
-    return false
-  },
-  list,
-  async use ({ value }: { value: string }) {
-    const accounts = config.get('accounts')
-    const account = accounts.find((it) => it.name === value || it.email === value)
+        return true
+      }
 
-    if (account) {
-      /**
-       * @see https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#about-git-usernames
-       */
+      return false
+    },
+    remove({ value }: { value: string }) {
+      const accounts = config.get('accounts')
+      const account = accounts.some(
+        (it) => it.name === value || it.email === value
+      )
 
-      await $`git config --global user.email ${account.email}`
-      await $`git config --global user.name ${account.name}`
+      if (account) {
+        config.set(
+          'accounts',
+          accounts.filter((it) => !(it.name === value || it.email === value))
+        )
 
-      list()
+        list()
 
-      return true
-    }
+        return true
+      }
 
-    return false
-  },
-}
+      return false
+    },
+    list,
+    async use({ value }: { value: string }) {
+      const accounts = config.get('accounts')
+      const account = accounts.find(
+        (it) => it.name === value || it.email === value
+      )
+
+      if (account) {
+        /**
+         * @see https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#about-git-usernames
+         */
+
+        await $`git config --global user.email ${account.email}`
+        await $`git config --global user.name ${account.name}`
+
+        list()
+
+        return true
+      }
+
+      return false
+    },
+  }
 
 const program = commander.createCommand()
 
@@ -201,7 +212,7 @@ program
     'initialize the git-user configuration with the current git global configuration.'
   )
   .action(() => {
-    actions.init()
+    void actions.init()
   })
 
 program
@@ -209,31 +220,33 @@ program
   .description('add the given username and email to the data list.')
   .argument('<name>', 'the name of the github account.', trim)
   .argument('<email>', 'the email of the github account.', verify_email)
-  .action((name, email) => {
-    actions.add({ name, email })
+  .action((name: string, email: string) => {
+    void actions.add({ name, email })
   })
 
 program
   .command('remove')
-  .description('remove the data from the list based on the given username or email.')
+  .description(
+    'remove the data from the list based on the given username or email.'
+  )
   .argument('<name|email>', 'the name or email of the github account.', trim)
-  .action((value) => {
-    actions.remove({ value })
+  .action((value: string) => {
+    void actions.remove({ value })
   })
 
 program
   .command('list')
   .description('list all git users, currently in use will be marked with *.')
   .action(() => {
-    actions.list()
+    void actions.list()
   })
 
 program
   .command('use')
   .description('use the user based on the given username or email.')
   .argument('<name|email>', 'the name or email of the github account.', trim)
-  .action((value) => {
-    actions.use({ value })
+  .action((value: string) => {
+    void actions.use({ value })
   })
 
-program.parse(process.argv.slice(process.env.NODE_ENV === 'debug' ? void 0 : 1))
+program.parse(process.argv)
