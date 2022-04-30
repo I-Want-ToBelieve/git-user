@@ -1,6 +1,6 @@
 {
   "name": "@backtolife/git-user",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "./dist/index.cjs",
   "bin": {
@@ -16,6 +16,7 @@
     "dev": "pnpm run build && esmo scripts/post_build.ts",
     "test": " pnpm add $(pwd) --global; git user list",
     "prepare": "husky install",
+    "commit": "cz",
     "release": "release-it"
   },
   "sideEffects": false,
@@ -86,5 +87,8 @@
     "ini": "^3.0.0",
     "omelette": "^0.4.17",
     "zx": "^6.1.0"
+  },
+  "volta": {
+    "node": "16.15.0"
   }
 }
