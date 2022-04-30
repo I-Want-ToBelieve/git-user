@@ -1,6 +1,6 @@
 {
   "name": "git-user",
-  "version": "0.0.1",
+  "version": "0.0.0-development",
   "description": "",
   "main": "./dist/index.cjs",
   "bin": {
@@ -15,12 +15,27 @@
     "start": "pnpm run dev",
     "dev": "pnpm run build && esmo scripts/post_build.ts",
     "test": " pnpm add $(pwd) --global; git user list",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky install",
+    "release": "semantic-release"
   },
   "sideEffects": false,
   "engines": {
     "node": ">=14"
   },
+  "keywords": [
+    "git",
+    "git-user",
+    "git user",
+    "git-users"
+  ],
+  "author": "backtolife",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/backtolife2021/git-user.git"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@6.32.3",
   "devDependencies": {
     "@commitlint/cli": "^16.2.4",
     "@commitlint/config-conventional": "^16.2.4",
@@ -29,6 +44,7 @@
     "@types/omelette": "^0.4.1",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
+    "browserslist": "^4.20.3",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "8.14.0",
@@ -47,13 +63,11 @@
     "lint-staged": "^12.4.1",
     "neovim": "^4.10.1",
     "prettier": "^2.6.2",
+    "semantic-release": "^19.0.2",
     "tslib": "^2.4.0",
     "tsup": "^5.12.6",
     "typescript": "^4.6.4"
   },
-  "keywords": [],
-  "author": "backtolife",
-  "license": "ISC",
   "dependencies": {
     "cli-table3": "^0.6.2",
     "commander": "^9.2.0",
@@ -61,6 +75,5 @@
     "ini": "^3.0.0",
     "omelette": "^0.4.17",
     "zx": "^6.1.0"
-  },
-  "packageManager": "pnpm@6.32.3"
+  }
 }
