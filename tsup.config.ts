@@ -8,6 +8,7 @@ export default defineConfig({
   entry: ['src/index.ts'],
   outDir: 'dist',
   target: 'node14',
+  format: ['esm'],
   minify: true,
   dts: false,
   splitting: false,
